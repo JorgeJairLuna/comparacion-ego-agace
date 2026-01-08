@@ -1,21 +1,65 @@
 import Grid from '@mui/material/Grid'
 import ExcelDropzone from './Excel/ExcelDropzone'
 import { useState } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Tab, Tabs, Typography } from '@mui/material'
 import './App.css'
 import { extractSubdata } from './Excel/SubdataExtractor';
 import { agruparDatos } from './Excel/agruparDatos';
 import DynamicTable from './Excel/DynamicTable'
+import { clasificarCorrectos } from './Excel/clasificarCorrectos'
+import { clasificarParcialesAGACE } from './Excel/clasificarParcialesAGACE'
+import { clasificarParcialesDescargos } from './Excel/clasificarParcialesDescargos'
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
 
 function App() {
   const [dataAGACE, setDataAGACE] = useState<any[]>([]);
   const [dataDescargos, setDataDescargos] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
+  const [dataCorrectos, setDataCorrectos] = useState<any[]>([]);
+  const [dataIncorrectos, setDataIncorrectos] = useState<any[]>([]);
+  const [dataParcialesAGACE, setDataParcialesAGACE] = useState<any[]>([]);
+  const [dataParcialesDescargos, setDataParcialesDescargos] = useState<any[]>([]);
+  const [value, setValue] = useState(0);
 
   // Función para procesar y agrupar los datos al hacer clic
   const handleProcesarDatos = () => {
     const resultado = agruparDatos(dataAGACE, dataDescargos);
     setData(resultado);
+    const { correctos, otros } = clasificarCorrectos(resultado);
+    setDataCorrectos(correctos);
+    const { parcialesAGACE, otros: otrosParciales } = clasificarParcialesAGACE(otros);
+    const { parcialesDescargos, otros: otrosDescargos } = clasificarParcialesDescargos(otrosParciales);
+    setDataParcialesAGACE(parcialesAGACE);
+    setDataParcialesDescargos(parcialesDescargos);
+    setDataIncorrectos(otrosDescargos);
   };
 
   const handleAGACE = (data: any[]) => {
@@ -30,9 +74,7 @@ function App() {
       producto: 'U',
       utilizado: 'AB'
     }
-    console.error('AGACE actual', data);
     const result = extractSubdata(data, columns, 5)
-    console.error('AGACE actualizados', result);
     setDataAGACE(result as any[][]);
   };
 
@@ -48,10 +90,12 @@ function App() {
       producto: 'U',
       utilizado: 'AD'
     }
-    console.error('Descargos actual', data);
     const result = extractSubdata(data, columns, 5)
-    console.error('Descargos actualizados', result);
     setDataDescargos(result as any[][]);
+  };
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
   };
 
   return (
@@ -74,9 +118,35 @@ function App() {
       <Button variant="contained" sx={{ mt: 3 }} onClick={handleProcesarDatos}>
         Procesar datos
       </Button>
-      <Box sx={{ mt: 3 }}>
-        <DynamicTable data={data} />
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Todos los datos" {...a11yProps(0)} />
+          <Tab label="Correctos" {...a11yProps(1)} />
+          <Tab label="Incorrectos" {...a11yProps(2)} />
+          <Tab label="Parciales AGACE" {...a11yProps(3)} />
+          <Tab label="Parciales Descargos" {...a11yProps(4)} />
+        </Tabs>
       </Box>
+      <CustomTabPanel value={value} index={0}>
+        {/* Todos los datos */}
+        <DynamicTable data={data} />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={1}>
+        {/* Correctos */}
+        <DynamicTable data={dataCorrectos} />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={2}>
+        {/* Incorrectos */}
+        <DynamicTable data={dataIncorrectos} />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={3}>
+        {/* Parciales AGACE */}
+        <DynamicTable data={dataParcialesAGACE} />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={4}>
+        {/* Parciales Descargos */}
+        <DynamicTable data={dataParcialesDescargos} />
+      </CustomTabPanel>
     </Box>
   )
 }
