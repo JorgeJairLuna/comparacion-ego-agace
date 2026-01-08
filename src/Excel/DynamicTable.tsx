@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
  */
 interface Props {
   data: any[];
+  highlightDiffs?: boolean;
 }
 
 
@@ -26,21 +27,39 @@ interface Props {
  * Componente de tabla dinámica que genera encabezados y filas a partir de los datos recibidos.
  * @param data Array de objetos a mostrar en la tabla
  */
-const DynamicTable: React.FC<Props> = ({ data }) => {
-  // Si no hay datos, mostrar mensaje
+
+const DynamicTable: React.FC<Props> = ({ data, highlightDiffs }) => {
   if (!data || data.length === 0) {
     return <div>No hay datos para mostrar.</div>;
   }
 
-  // Obtener las llaves del primer objeto para los encabezados de la tabla
   const headers = Object.keys(data[0]);
+
+  // Si se activa highlightDiffs, buscar pares base-AGACE/base-Descargos
+  let diffMap: Record<string, boolean[]> = {};
+  if (highlightDiffs) {
+    // Para cada fila, para cada base, marcar si es diferente
+    data.forEach((row, rowIdx) => {
+      headers.forEach(header => {
+        if (header.endsWith('-AGACE')) {
+          const base = header.replace('-AGACE', '');
+          const agaceVal = row[`${base}-AGACE`];
+          const descVal = row[`${base}-Descargos`];
+          if (!diffMap[`${base}-AGACE`]) diffMap[`${base}-AGACE`] = [];
+          if (!diffMap[`${base}-Descargos`]) diffMap[`${base}-Descargos`] = [];
+          const isDiff = agaceVal !== descVal;
+          diffMap[`${base}-AGACE`][rowIdx] = isDiff;
+          diffMap[`${base}-Descargos`][rowIdx] = isDiff;
+        }
+      });
+    });
+  }
 
   return (
     <TableContainer component={Paper}>
       <Table size="small">
         <TableHead>
           <TableRow>
-            {/* Renderiza los encabezados de la tabla */}
             {headers.map((header) => (
               <TableCell key={header} align="center" sx={{ fontWeight: 'bold' }}>
                 {header}
@@ -49,11 +68,14 @@ const DynamicTable: React.FC<Props> = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* Renderiza las filas de la tabla */}
           {data.map((row, idx) => (
             <TableRow key={idx}>
               {headers.map((header) => (
-                <TableCell key={header} align="center">
+                <TableCell
+                  key={header}
+                  align="center"
+                  sx={highlightDiffs && diffMap[header]?.[idx] ? { color: 'red', fontWeight: 'bold' } : {}}
+                >
                   {row[header]}
                 </TableCell>
               ))}

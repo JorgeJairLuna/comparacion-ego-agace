@@ -49,6 +49,14 @@ Esta aplicación está diseñada para comparar dos documentos clave para la empr
 - **Entrada:** Interacción del usuario (carga de archivos, clic en procesar).
 - **Salida:** Visualización de la tabla comparativa.
 
+### 6. Funciones de clasificación
+*Permiten segmentar los resultados agrupados para un análisis más detallado y útil.*
+- **clasificarCorrectos:** identifica registros donde los datos de AGACE y Descargos son iguales en todos los campos relevantes.
+- **clasificarParcialesAGACE:** identifica registros donde solo hay información en AGACE y no en Descargos.
+- **clasificarParcialesDescargos:** identifica registros donde solo hay información en Descargos y no en AGACE.
+
+Estas funciones permiten mostrar tablas separadas para coincidencias exactas, diferencias y registros parciales, facilitando la revisión y auditoría de los datos.
+
 ---
 
 Esta arquitectura permite separar claramente la extracción, transformación, agrupación y visualización de los datos, facilitando el mantenimiento y la extensión de la aplicación.
