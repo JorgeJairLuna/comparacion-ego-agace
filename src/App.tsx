@@ -107,7 +107,7 @@ function App() {
     setDataDescargos(result as any[][]);
   };
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_: unknown, newValue: number) => {
     setValue(newValue);
   };
 
