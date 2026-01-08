@@ -1,7 +1,7 @@
 import Grid from '@mui/material/Grid'
 import ExcelDropzone from './Excel/ExcelDropzone'
 import { useState } from 'react'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import './App.css'
 import { extractSubdata } from './Excel/SubdataExtractor';
 import { agruparDatos } from './Excel/agruparDatos';
@@ -55,12 +55,19 @@ function App() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 0 }}>
+      <Typography variant="h2" color="initial" sx={{ mb: 2 }}>Comparación AGACE vs Descargos</Typography>
+      <Typography variant="body2" color="initial" sx={{ mb: 5 }}>
+        Esta aplicación permite comparar datos entre dos conjuntos de Excel: AGACE y Descargos.
+        Sube ambos archivos, procesa los datos y muestra una tabla comparativa.
+      </Typography>
       <Grid container spacing={3} columns={12}>
         <Grid size={6}>
+          <Typography variant="h4" color="initial">AGACE</Typography>
           <ExcelDropzone onData={handleAGACE} />
         </Grid>
         <Grid size={6}>
+          <Typography variant="h4" color="initial">Descargos</Typography>
           <ExcelDropzone onData={handleDescargos} />
         </Grid>
       </Grid>
