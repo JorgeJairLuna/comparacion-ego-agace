@@ -1,75 +1,54 @@
-# React + TypeScript + Vite
+# comparacion-ego-agace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Esta aplicación ayuda a comparar dos documentos clave para la empresa Ego:
 
-Currently, two official plugins are available:
+- **AGACE**: Documento entregado por el SAT.
+- **Reporte de Descargos**: Documento que Ego entrega al SAT.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+La herramienta permite cargar ambos archivos Excel, agrupar y comparar la información relevante de cada uno, mostrando las diferencias y coincidencias de manera clara y ordenada. Es útil para auditoría, conciliación y control interno.
 
-## React Compiler
+## ¿Cómo funciona?
+1. Sube el archivo AGACE (SAT) y el reporte de descargos (Ego).
+2. La app extrae, agrupa y compara los datos clave de ambos documentos.
+3. Visualiza la comparación en una tabla dinámica para su análisis.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Ideal para áreas de comercio exterior, fiscal y auditoría en Ego.
 
-Note: This will impact Vite dev & build performances.
+# Arquitectura y descripción general
 
-## Expanding the ESLint configuration
+Esta aplicación está diseñada para comparar dos documentos clave para la empresa Ego: el archivo AGACE (SAT) y el reporte de descargos (Ego). La arquitectura es modular y cada función/componente tiene una responsabilidad clara.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Componentes y funciones principales
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. ExcelDropzone
+*Componente React que permite al usuario arrastrar y soltar (o seleccionar) un archivo Excel (.xlsx o .xls). Procesa el archivo usando SheetJS (xlsx) y retorna los datos extraídos en formato JSON a través de la prop onData. Muestra el nombre del archivo seleccionado y un área visualmente atractiva para la carga.*
+- **Entrada:** Archivo Excel.
+- **Salida:** Array JSON (matriz de filas y columnas crudas del Excel).
+- **No modifica los datos, solo los extrae.**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 2. extractSubdata
+*Función que toma el JSON crudo de Excel y extrae solo las columnas relevantes, mapeando por letra de columna (A, B, ... AB, etc.). Convierte fechas seriales de Excel a formato ISO si es necesario.*
+- **Entrada:** Array crudo de Excel, mapeo de columnas, fila de inicio.
+- **Salida:** Array de objetos con solo los campos requeridos.
+- **Soporta letras de columna simples y compuestas.**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 3. agruparDatos
+*Función que agrupa y compara los datos de AGACE y Descargos según las claves entrada, salida y claveInsumo. Renombra las columnas para que cada campo tenga su versión -AGACE y -Descargos, y las ordena para facilitar la comparación.*
+- **Entrada:** Arrays de objetos de AGACE y Descargos.
+- **Salida:** Array de objetos agrupados y comparados, listo para mostrar en tabla.
+- **Ordena las columnas según la lógica de negocio.*
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 4. DynamicTable
+*Componente React que recibe un array de objetos y genera una tabla dinámica usando Material UI. Los encabezados se generan automáticamente y las filas se muestran de forma responsiva.*
+- **Entrada:** Array de objetos (la tabla agrupada).
+- **Salida:** Tabla visual en pantalla.
+- **No modifica los datos, solo los muestra.**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 5. App
+*Componente principal que orquesta el flujo: recibe los archivos, extrae los datos, los procesa y muestra la tabla comparativa. Gestiona el estado y las interacciones del usuario.*
+- **Entrada:** Interacción del usuario (carga de archivos, clic en procesar).
+- **Salida:** Visualización de la tabla comparativa.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+Esta arquitectura permite separar claramente la extracción, transformación, agrupación y visualización de los datos, facilitando el mantenimiento y la extensión de la aplicación.
