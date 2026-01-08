@@ -9,6 +9,7 @@ import DynamicTable from './Excel/DynamicTable'
 import { clasificarCorrectos } from './Excel/clasificarCorrectos'
 import { clasificarParcialesAGACE } from './Excel/clasificarParcialesAGACE'
 import { clasificarParcialesDescargos } from './Excel/clasificarParcialesDescargos'
+import { exportarTabsAExcel } from './Excel/exportarTabsAExcel'
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -40,6 +41,16 @@ function a11yProps(index: number) {
 }
 
 function App() {
+  // Exportar los datos de los tabs a un Excel
+  const handleExportarExcel = () => {
+    exportarTabsAExcel([
+      { nombre: 'Todos', datos: data },
+      { nombre: 'Correctos', datos: dataCorrectos },
+      { nombre: 'Incorrectos', datos: dataIncorrectos },
+      { nombre: 'Parciales_AGACE', datos: dataParcialesAGACE },
+      { nombre: 'Parciales_Descargos', datos: dataParcialesDescargos },
+    ], 'comparacion-ego.xlsx');
+  };
   const [dataAGACE, setDataAGACE] = useState<any[]>([]);
   const [dataDescargos, setDataDescargos] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -48,18 +59,20 @@ function App() {
   const [dataParcialesAGACE, setDataParcialesAGACE] = useState<any[]>([]);
   const [dataParcialesDescargos, setDataParcialesDescargos] = useState<any[]>([]);
   const [value, setValue] = useState(0);
+  const [procesado, setProcesado] = useState(false);
 
   // Función para procesar y agrupar los datos al hacer clic
   const handleProcesarDatos = () => {
     const resultado = agruparDatos(dataAGACE, dataDescargos);
     setData(resultado);
-    const { correctos, otros } = clasificarCorrectos(resultado);
-    setDataCorrectos(correctos);
-    const { parcialesAGACE, otros: otrosParciales } = clasificarParcialesAGACE(otros);
+    const { parcialesAGACE, otros: otrosParciales } = clasificarParcialesAGACE(resultado);
     const { parcialesDescargos, otros: otrosDescargos } = clasificarParcialesDescargos(otrosParciales);
+    const { correctos, otros } = clasificarCorrectos(otrosDescargos);
+    setDataCorrectos(correctos);
     setDataParcialesAGACE(parcialesAGACE);
     setDataParcialesDescargos(parcialesDescargos);
-    setDataIncorrectos(otrosDescargos);
+    setDataIncorrectos(otros);
+    setProcesado(true);
   };
 
   const handleAGACE = (data: any[]) => {
@@ -115,9 +128,19 @@ function App() {
           <ExcelDropzone onData={handleDescargos} />
         </Grid>
       </Grid>
-      <Button variant="contained" sx={{ mt: 3 }} onClick={handleProcesarDatos}>
+      <Button
+        variant="contained"
+        sx={{ mt: 3 }}
+        onClick={handleProcesarDatos}
+        disabled={dataAGACE.length === 0 || dataDescargos.length === 0}
+      >
         Procesar datos
       </Button>
+      {procesado && (
+        <Button variant="contained" sx={{ mt: 3, ml: 2 }} onClick={handleExportarExcel}>
+          Exportar a excel
+        </Button>
+      )}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Todos los datos" {...a11yProps(0)} />
